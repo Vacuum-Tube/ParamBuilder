@@ -84,6 +84,10 @@ Zahlenbereich
 ParamBuilder.range(start, end, *step)
 Gibt einen linearen Zahlenbereich als table zurück. Start und end sind immer enthalten.
 
+Zahlenbereich (symmetrisch)
+ParamBuilder.rangeSymm(end, *step)
+Gibt einen um 0 symmetrischen linearen Zahlenbereich von -end bis end als table zurück. Der Grund für eine eigene Funktion liegt in der numerischen Ungenauigkeit, die bei range entstehen würde und die Werte nicht mehr richtig runden würde. Wenn der default Wert 0 sein soll, muss man für den Index end/step angeben.
+
 String Umwanldung
 ParamBuilder.strValues(values)
 Wandelt alle Werte der gegebenen Tabelle in strings um.
