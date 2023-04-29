@@ -1,0 +1,213 @@
+Hiermit möchte ich euch mein Mod-Tool ParamBuilder vorstellen.
+Damit können Modder sehr schnell und einfach UI-Parameter (Konstruktionen und Mod-Einstellungen) definieren.
+Die API vereinfacht sowohl die Erstellung der Parameter als auch das Auslesen der Werte.
+
+
+Parameter Grundlagen
+
+Man kann UI-Parameter für Konstruktionen (in der .con) angeben, außerdem sind seit dem Juni-Update Mod-Parameter möglich (in mod.lua definiert).
+Beide haben grundsätzlich dieselbe Struktur und werden hier daher gemeinsam betrachtet (es gibt dennoch ein paar Unterschiede).
+Die Definition und Benutzung der Parameter ist hier dokumentiert:
+https://www.transportfever.net/lexicon/index.php?entry/277-parametertypen-in-konstruktionen/
+https://www.transportfever2.com/wiki/doku.php?id=modding:constructionbasics#parameters
+
+Es gibt 5 verschiedene UI-Typen. Man muss einen eindeutigen key, einen Namen und die Werte angeben. Optional DefaultIndex und Tooltip.
+
+In der updateFn erhält man dann den ausgewählten Wert in den params (bzw. in der runFn die modparams). Hier ist nur der Index enthalten, Modder müssen daraus noch die Werte ermitteln und Fallunterscheidungen durchführen. Bei den Mod-Einstellungen kommt hinzu, dass hier mehrfach die Gültigkeit überprüft werden muss, weil die Tabelle für die Mod bzw. der key nicht immer dabei ist.
+
+
+Warum ParamBuilder?
+-Parameter für Konstruktionen und Mod-Einstellungen
+-Einfache zu benutzende API, die alles für einen erledigt
+-One-Line-Code: Definition, Übergabe, Werte-Ermittlung
+-Parameter sind auch für Modder mit weniger Erfahrung besser zugänglich
+-Direkte Rückgabe der relevanten Werte
+-Failback-Abfragen mit Default Werten
+-Einfache Angabe von Zahlenbereichen (nützlich für Slider)
+-Nur Angabe der nötigsten Argumente
+-Code wird kürzer und übersichtlicher
+
+
+Einbindung
+
+Die Datei muss in der Mod an folgender Stelle vorhanden sein:  res/scripts/parambuilder_v1.lua
+Die Datei darf nicht geändert werden, sonst gibt es Kompatibilitätsprobleme!
+
+In der Datei, in der die Parameter gebraucht werden, wird ParamBuilder folgendermaßen eingebunden:
+local ParamBuilder = require "parambuilder_v1"
+
+
+Syntax-Definition
+
+Für jeden Parameter wird eine lokale Variable erstellt:  local myparam = ...
+Es gilt weiterhin: keys müssen eindeutig sein, auch modübergreifend!
+Doppelt vorhandene keys führen zu undefiniertem Verhalten. Obwohl die Mod-Einstellungen vom Aufbau her auf modeigene keys ausgelegt sind, sollten auch diese nicht zu allgemeine Namen haben, da durch einen Bug manchmal die Einstellungen von anderen Mods überschrieben werden.
+
+Auch name muss bei allen Typen angegeben werden und wird über dem Element angezeigt. Kann/sollte daher in strings.lua übersetzt werden.
+
+* sind optionale Argumente
+Will man ein Argument auslassen, schreibt man dort nil.
+
+Button
+ParamBuilder.Button(key, name, values, *defIdx, *tooltip, *valuesTxt)
+Mit values gibt man eine Tabelle an, die die Auswahloptionen enthält. Die Elemente können einen beliebigen Datentyp (string, number, ...) haben und werden später mit getValue zurückgegeben. Standardmäßig werden diese Werte (mit tostring) auch im UI angezeigt, wird valuesTxt angegeben, werden stattdessen diese Werte für die Anzeige genommen.
+defIdx ist der Index (0,1,...) der am Anfang ausgewählt ist. Standard: 0
+
+Combobox
+ParamBuilder.Combobox(key, name, values, *defIdx, *tooltip, *valuesTxt)
+Funktioniert grundsätzlich wie Button. Im Gegensatz zu diesem wird im UI Groß-/Kleinschreibung berücksichtigt. Ist im Prinzip ein Dropdown-Menü und eignet sich daher bei vielen Elementen oder längeren Bezeichnungen.
+
+Slider
+ParamBuilder.Slider(key, name, values, *defIdx, *tooltipORvandef, *valuesTxt)
+Beim Slider werden die Werte rechts davon angezeigt, abhängig von der Auswahlposition. Eignet sich für numerische Werte, daher ist es nützlich, ParamBuilder.range für values zu verwenden.
+Wenn man einen default Wert angeben will, muss man eventuell etwas rumrechnen.
+Für den Tooltip (Vorschau über dem Parameternamen) gibt es mehrere Möglichkeiten, abhängig vom Datentyp von tooltipORvandef.
+string: wird direkt als Tooltip übernommen
+true: "Mod Standard: <defaultValue>"  (deutsch: sollte man noch in strings.lua übersetzen: ["Default"] = "Standard" )
+number: "Vanilla Standard: <number>" + Modstandard (s.o.)
+Die beiden letzten eignen sich z.B. für Mod-Einstellungen, die config Werte ändern.
+
+IconButton
+ParamBuilder.IconButton(key, name, icons, *values, *defIdx, *tooltip)
+icons enthält eine Liste mit den Pfaden zu den .tga Dateien .
+Mit values kann man eine Liste angeben, was später benötigt wird (z.B. mdl-Dateien).
+
+Checkbox
+ParamBuilder.Checkbox(key, name, *defaultCheck)
+defaultCheck wird direkt mit true/false angegeben. Standard: true
+Wert-Rückgabe am einfachsten mit getBool
+
+
+Weitere Funktionen
+
+Zahlenbereich
+ParamBuilder.range(start, end, *step)
+Gibt einen linearen Zahlenbereich als table zurück. Start und end sind immer enthalten.
+
+String Umwanldung
+ParamBuilder.strValues(values)
+Wandelt alle Werte der gegebenen Tabelle in strings um.
+
+
+Parameter Angabe
+
+Die Angaben, die das Spiel zur Definition braucht, werden im Feld "params" abgelegt und werden folgendermaßen übergeben:
+params = {
+	myparam1.params,
+	myparam2.params,
+},
+
+
+Werte-Ermittlung
+
+In der updateFn(params) können die tatsächlichen Werte anhand der aktuellen params ermittelt werden.
+In der (post)runFn werden die modparams als 2. Argument übergeben. Die params für die eigene Mod erhält man mit:
+local params = modparams[getCurrentModId()]
+
+myparam.getIndex(params)
+Gibt den reinen Index des definierten keys zurück.
+
+myparam.getBool(params)
+Gibt den entsprechenden Wahrheitswert zurück (>0). Praktisch für Checkboxen.
+
+myparam.getValue(params)
+Ermittelt den eigentlichen Wert. Ist wahrscheinlich die Funktion, die man am ehesten benutzen wird.
+
+Bei allen Ermittlungen werden Überprüfungen gemacht, sodass es bei unerwarteten Daten nicht zu einem Fehler kommt.
+Ist z.B. der key nicht enthalten, wird eine Meldung in die stdout geprintet und der default Wert zurückgegeben.
+Vor allem bei den Mod-Parametern kann es zu solchen Problemen kommen, da dort der default Wert nicht funktioniert und die params für die Mod komplett fehlen können. Erst wenn man in den Einstellungen was verändert, werden Werte gesetzt und es wird keine Warnung mehr geprintet.
+
+
+Beispiele
+
+mod.lua
+local paramMaxSlopeBuild = ParamBuilder.Slider("maxSlopeBuildTrack", _("Max Track Slope"), ParamBuilder.range(0.005, 0.1, 0.005), 7, 0.075 )
+local paramEmbankmentSlope = ParamBuilder.Slider("embankmentSlopeTrack", _("Embankment Slope"), ParamBuilder.range(0.05, 1.5, 0.05), 9, 0.75 )
+local paramEmbankmentSlopeHigh = ParamBuilder.Checkbox("embankmentSlopeHighTrack", _("Embankment Slope High") )
+...
+info = {
+	...
+	params = {
+		paramMaxSlopeBuild.params,
+		paramEmbankmentSlope.params,
+		paramEmbankmentSlopeHigh.params,
+	}
+...
+runFn = function (settings, modparams)
+	local params = modparams[getCurrentModId()]
+
+	local maxslope = paramMaxSlopeBuild.getValue(params)
+	local embslope = paramEmbankmentSlope.getValue(params)
+	local embslopehigh = paramEmbankmentSlopeHigh.getBool(params)
+	
+	addModifier("loadTrack", function(fileName, track)
+		track.maxSlopeBuild = maxslope
+...
+
+
+local model_icons = {
+	"ui/construction/asset/temperate/shingle_oak.tga",
+	"ui/construction/asset/default_multi_bench_new.tga",
+	"ui/construction/asset/rock_cracked_02.tga",
+}
+local model_values = {
+	"tree/shingle_oak.mdl",
+	"asset/bench_new.mdl",
+	"asset/rocks/rock_cracked_02.mdl",
+}
+local paramModel = ParamBuilder.IconButton("modelformymod", _("Model"), model_icons, model_values )
+local paramRotation = ParamBuilder.Slider("mymodRotation", _("Rotation").." in °", ParamBuilder.range(0,360,5) )
+local paramHeight = ParamBuilder.Slider("mymodHeight", _("Height").." in m", ParamBuilder.range(0,10,0.1) )
+...
+	updateFn = function(params)
+		local result = { }
+		result.models = { }
+		table.insert(result.models, {
+			id = paramModel.getValue(params),
+			--transf = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+			transf = transf.rotZYXTransl(transf.degToRad(paramRotation.getValue(params), 0, 0), vec3.new(0, 0, paramHeight.getValue(params)))
+		} )
+
+
+local landuseTypes = {"RESIDENTIAL","COMMERCIAL","INDUSTRIAL"}
+local paramLanduse = ParamBuilder.Button("APMlanduseType", _("Landuse"), landuseTypes )
+local paramPCapacity = ParamBuilder.Slider("APMpersonCapacity", _("Person Capacity"), ParamBuilder.range(0,800,10) , 5 , "Number of Capacities for Persons" )
+...
+updateFn = function(params)
+	local result = { }
+	result.personCapacity = {
+		type = paramLanduse.getValue(params),
+		capacity = paramPCapacity.getValue(params),
+	}
+	...
+
+
+local CargoTypes = {"GOODS","FOOD","TOOLS"}
+local CargoTypesText = {_("Goods"),_("Food"),_("Tools")}
+local paramCargoType = ParamBuilder.Combobox("CargoTypeAOTM", _("Cargo Type"), CargoTypes, 0, nil, CargoTypesText )
+...
+updateFn = function(params)
+	...
+	local ctpye = paramCargoType.getValue(params)
+	result.stocks = { } -- Import
+	result.rule = {
+		input = { {  } },
+		output = { [ctpye] = 1 },
+		capacity = 200 ,
+	}
+
+
+
+
+Weitere:
+https://www.transportfever.net/filebase/index.php?entry/5567-realistic-railway-slopes/ / https://www.transportfever.net/filebase/index.php?entry/5621-maximum-street-slopes/
+https://www.transportfever.net/index.php?thread/15002-unsichtbarer-zugspeicher-f%C3%BCr-flugzeuge/&postID=315944#post315944
+Advanced Person Magnet (in Planung)
+
+
+Wie ist ParamBuilder entstanden?
+
+Zum ersten Mal hatte ich mit den Parametern bei https://www.transportfever.net/filebase/index.php?entry/5533-realistic-train-brake/ zu tun. Die neuen Einstellungen für Mods befanden sich noch in der Entwicklung und waren anfangs noch sehr verbuggt. Zahlreiche Failback-Abfragen waren/sind immer noch nötig.
+In https://www.transportfever.net/filebase/index.php?entry/5567-realistic-railway-slopes/ (v1.0) befand sich schon das Grundgerüst von ParamBuilder. Es war mir zu blöd, für 10 Werte {0.01, 0.02, 0.03, ...} zu schreiben und dasselbe nochmal als string für die values. Also fing ich an, Helfer-Funktionen zu schreiben.
+Auch beim Airport outside the map brauchte ich einige Slider mit vielen Werten. Daher kam die Idee es auszulagern und um die anderen UI-Typen zu erweitern, da das Grundprinzip das gleiche ist. Und da dachte ich, warum nicht gleich veröffentlichen, damit andere Modder auch davon profitieren?
+Außerdem habe ich bei anderen Mods alles mögliche gesehen, einiges davon war unnötig umständlich und fehleranfällig geschrieben. Natürlich kann man nicht von jedem Modder den besten Programmierstil erwarten. Mit ParamBuilder wird der Umgang mit Parametern für Modder hoffentlich einfacher.
