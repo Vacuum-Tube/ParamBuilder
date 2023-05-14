@@ -1,3 +1,8 @@
+2023-05-14  v1.2 
+- Tooltip argument for Checkbox
+- format string or function for valuesTxt
+- add file integrity check
+
 2020-10-06  v1.1
 - New Function "rangeSymm"
 

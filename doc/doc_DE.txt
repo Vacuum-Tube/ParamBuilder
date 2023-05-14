@@ -30,11 +30,11 @@ Warum ParamBuilder?
 
 Einbindung
 
-Die Datei muss in der Mod an folgender Stelle vorhanden sein:  res/scripts/parambuilder_v1.lua
+Die Datei muss in der Mod an folgender Stelle vorhanden sein:  res/scripts/parambuilder_v1_2.lua
 Die Datei darf nicht geändert werden, sonst gibt es Kompatibilitätsprobleme!
 
 In der Datei, in der die Parameter gebraucht werden, wird ParamBuilder folgendermaßen eingebunden:
-local ParamBuilder = require "parambuilder_v1"
+local ParamBuilder = require "parambuilder_v1_2"
 
 
 Syntax-Definition
@@ -50,8 +50,9 @@ Will man ein Argument auslassen, schreibt man dort nil.
 
 Button
 ParamBuilder.Button(key, name, values, *defIdx, *tooltip, *valuesTxt)
-Mit values gibt man eine Tabelle an, die die Auswahloptionen enthält. Die Elemente können einen beliebigen Datentyp (string, number, ...) haben und werden später mit getValue zurückgegeben. Standardmäßig werden diese Werte (mit tostring) auch im UI angezeigt, wird valuesTxt angegeben, werden stattdessen diese Werte für die Anzeige genommen.
-defIdx ist der Index (0,1,...) der am Anfang ausgewählt ist. Standard: 0
+Mit values gibt man eine Tabelle an, die die Auswahloptionen enthält. Die Elemente können einen beliebigen Datentyp (string, number, ...) haben und werden später mit getValue zurückgegeben. 
+Standardmäßig werden diese Werte (via tostring) auch im UI angezeigt; mit valuesTxt kann eigene Werte für die Anzeige definieren (als table, format string oder function, siehe strValues).
+defIdx ist der Index (0,1,...) der standardmäßig ausgewählt ist. Standard: 0
 
 Combobox
 ParamBuilder.Combobox(key, name, values, *defIdx, *tooltip, *valuesTxt)
@@ -73,7 +74,7 @@ icons enthält eine Liste mit den Pfaden zu den .tga Dateien .
 Mit values kann man eine Liste angeben, was später benötigt wird (z.B. mdl-Dateien).
 
 Checkbox
-ParamBuilder.Checkbox(key, name, *defaultCheck)
+ParamBuilder.Checkbox(key, name, *defaultCheck, *tooltip)
 defaultCheck wird direkt mit true/false angegeben. Standard: true
 Wert-Rückgabe am einfachsten mit getBool
 
@@ -88,9 +89,10 @@ Zahlenbereich (symmetrisch)
 ParamBuilder.rangeSymm(end, *step)
 Gibt einen um 0 symmetrischen linearen Zahlenbereich von -end bis end als table zurück. Der Grund für eine eigene Funktion liegt in der numerischen Ungenauigkeit, die bei range entstehen würde und die Werte nicht mehr richtig runden würde. Wenn der default Wert 0 sein soll, muss man für den Index end/step angeben.
 
-String Umwanldung
-ParamBuilder.strValues(values)
+String Umwandlung
+ParamBuilder.strValues(values, *formatStr)
 Wandelt alle Werte der gegebenen Tabelle in strings um.
+formatStr: nil - verwendet tostring(value); string - verwendet string.format z.B. "%d km"; beliebige function(value) return "..."
 
 
 Parameter Angabe

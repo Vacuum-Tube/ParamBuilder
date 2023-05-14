@@ -30,11 +30,11 @@ Why ParamBuilder?
 
 Integration
 
-The file must be located in the mod at: res/scripts/parambuilder_v1.lua
+The file must be located in the mod at: res/scripts/parambuilder_v1_2.lua
 The file must not be changed, otherwise there will be compatibility problems!
 
 In the file in which the parameters are used, ParamBuilder is integrated as follows:
-local ParamBuilder = require "parambuilder_v1"
+local ParamBuilder = require "parambuilder_v1_2"
 
 
 Syntax definition
@@ -50,8 +50,9 @@ If you want to leave out an argument, write nil there.
 
 Button
 ParamBuilder.Button(key, name, values, *defIdx, *tooltip, *valuesTxt)
-With values ​​you specify a table that contains the selection options. The elements can have any data type (string, number, ...) and are later returned with getValue. By default, these values ​​are also displayed in the UI (with tostring), if valuesTxt is specified, these values ​​are displayed instead.
-defIdx is the index (0,1,...) that is selected at the start. Default: 0
+With values ​​you specify a table that contains the selection options. The elements can have any data type (string, number, ...) and are later returned with getValue. 
+By default, these values ​​are also displayed in the UI (via tostring); with valuesTxt you can specify other values (as table, format string or function, see strValues ).
+defIdx is the index (0,1,...) that is selected as default. Default: 0
 
 Combobox
 ParamBuilder.Combobox(key, name, values, *defIdx, *tooltip, *valuesTxt)
@@ -73,7 +74,7 @@ icons contains a list with the paths to the .tga files.
 With values you can specify a list of what will be used later (e.g. mdl files).
 
 Checkbox
-ParamBuilder.Checkbox(key, name, *defaultCheck)
+ParamBuilder.Checkbox(key, name, *defaultCheck, *tooltip)
 defaultCheck is specified with true/false. Default: true
 The easiest way for value return is with getBool
 
@@ -89,8 +90,9 @@ ParamBuilder.rangeSymm(end, *step)
 Returns a linear symmetric range around 0 from -end to end. The reason for a specific function is the numeric error that would occur using range. If the default Value should be 0, set end/step for the Index.
 
 String conversion
-ParamBuilder.strValues(values)
+ParamBuilder.strValues(values, *formatStr)
 Converts all values ​​of the given table to strings.
+formatStr: nil - use tostring(value); string - use string.format e.g. "%d miles"; custom function(value) return "..."
 
 
 Parameter specification
