@@ -51,7 +51,7 @@ Will man ein Argument auslassen, schreibt man dort nil.
 Button
 ParamBuilder.Button(key, name, values, *defIdx, *tooltip, *valuesTxt)
 Mit values gibt man eine Tabelle an, die die Auswahloptionen enthält. Die Elemente können einen beliebigen Datentyp (string, number, ...) haben und werden später mit getValue zurückgegeben. 
-Standardmäßig werden diese Werte (via tostring) auch im UI angezeigt; mit valuesTxt kann eigene Werte für die Anzeige definieren (als table, format string oder function, siehe strValues).
+Standardmäßig werden diese Werte (via tostring) auch im UI angezeigt; mit valuesTxt kann man eigene Werte für die Anzeige definieren (als table, format string oder function, siehe strValues).
 defIdx ist der Index (0,1,...) der standardmäßig ausgewählt ist. Standard: 0
 
 Combobox
@@ -208,7 +208,8 @@ updateFn = function(params)
 Weitere:
 https://www.transportfever.net/filebase/index.php?entry/5567-realistic-railway-slopes/ / https://www.transportfever.net/filebase/index.php?entry/5621-maximum-street-slopes/
 https://www.transportfever.net/index.php?thread/15002-unsichtbarer-zugspeicher-f%C3%BCr-flugzeuge/&postID=315944#post315944
-Advanced Person Magnet (in Planung)
+https://www.transportfever.net/filebase/index.php?entry/5686-advanced-person-magnet/ (also an example for the definition of the params in a separate lua file)
+https://www.transportfever.net/filebase/index.php?entry/6797-rail-track-industry/ (example how to get parameters from mod.lua to game_script)
 
 
 Wie ist ParamBuilder entstanden?
